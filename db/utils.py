@@ -1,3 +1,5 @@
+from fastapi import HTTPException
+import requests
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from db.models import User, Session as ChatSession, Message
@@ -7,6 +9,16 @@ from typing import List, Optional
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_community.chat_message_histories import ChatMessageHistory
 
+def user_exists(db: Session, user_id: int) -> bool:
+    return db.query(User).filter(User.id == user_id).first() is not None
+
+def create_user(db: Session, user_id: int, nome_completo: str) -> int:
+    new_user = User(id=user_id, nome_completo=nome_completo)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user.id
+
 def create_session(db: Session, user_id: int, type_chat: str = "default") -> int:
     new_session = ChatSession(user_id=user_id, type_chat=type_chat)
     db.add(new_session)
@@ -14,14 +26,35 @@ def create_session(db: Session, user_id: int, type_chat: str = "default") -> int
     db.refresh(new_session)
     return new_session.id
 
+
 def save_message(
     db: Session,
     user_id: int,
     content: str,
     role: str,
     session_id: Optional[int] = None,
-    type_chat: str = "default"
+    type_chat: str = "default",
+    bearer_token: Optional[str] = None
 ):
+    if not user_exists(db, user_id):
+
+        response = requests.get("https://api-dev.hrstudium.pt/users",
+                headers={
+                    "company":"dev",
+                    "Authorization":"Bearer "+bearer_token
+                }
+
+            )
+
+        if response.status_code == 200:
+                user_data = response.json()
+                nome_completo = user_data.get("nome_completo")
+
+                user_id = create_user(db, user_id=user_id, nome_completo=nome_completo)
+
+        else:
+                raise HTTPException(status_code=401, detail="Invalid or missing authentication")
+        
     # If session_id not provided, create a new session
     if not session_id:
         session_id = create_session(db, user_id, type_chat)

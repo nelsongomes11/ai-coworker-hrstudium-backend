@@ -13,12 +13,12 @@ def get_db():
     finally:
         db.close()
 
-def handle_chat_model_request(input,bearer_token):
+def handle_chat_model_request(input:dict,bearer_token,uploaded_files):
 
     with SessionLocal() as db:
 
-        user_input = input.input
-        session_id = input.session_id
+        user_input = input.get("input")
+        session_id = input.get("session_id")
 
         response = requests.get("https://api-dev.hrstudium.pt/users",
                 headers={
@@ -37,13 +37,13 @@ def handle_chat_model_request(input,bearer_token):
                 raise HTTPException(status_code=401, detail="Invalid or missing authentication")
 
 
-        save_response=save_message(db,user_id=user_id,content=user_input,role="user",session_id=session_id,type_chat="requests")
+        save_response=save_message(db,user_id=user_id,content=user_input,role="user",session_id=session_id,type_chat="requests",bearer_token=bearer_token)
 
         session_id=save_response.get("session_id")
 
         history = get_messages(db, session_id=session_id)
         
-        chat_model_response=get_chat_model(bearer_token,user_input,uploaded_files=None,history=history)
+        chat_model_response=get_chat_model(bearer_token,user_input,uploaded_files=uploaded_files,history=history)
 
         save_ai_response=save_message(db,user_id=user_id,content=chat_model_response,role="assistant",session_id=session_id)
 

@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException,Header
+from fastapi import APIRouter, Depends, HTTPException,Header,UploadFile, File, Form
 
 from pydantic import BaseModel
 
@@ -10,23 +10,28 @@ import services.chat_model_request
 
 router = APIRouter(prefix="/chat_requests", tags=["Chat Request"])
 
-class InputMessage(BaseModel):
-    input:str
-    session_id: Optional[int] = None
-
-
-
 @router.post("/input")
-async def post_message(input:InputMessage, authorization: Optional[str] = Header(None)):
+async def post_message(
+    input: str = Form(...),
+    session_id: Optional[int] = Form(None),
+    uploaded_files: Optional[list[UploadFile]] = File(None),
+    authorization: Optional[str] = Header(None)
+):
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid or missing authentication")
     
     bearer_token = authorization.replace("Bearer ", "")
 
+    input_data = {
+        "input": input,
+        "session_id": session_id
+    }
 
-        
-    
-    return services.chat_model_request.handle_chat_model_request(input,bearer_token=bearer_token)
+    return services.chat_model_request.handle_chat_model_request(
+        input=input_data,
+        bearer_token=bearer_token,
+        uploaded_files=uploaded_files
+    )
 
 @router.get("/chat_history/{session_id}")
 async def get_chat_history(session_id: int, authorization: Optional[str] = Header(None)):

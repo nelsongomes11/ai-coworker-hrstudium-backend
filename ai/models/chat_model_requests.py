@@ -149,7 +149,7 @@ def get_chat_model(bearer_token,user_input,uploaded_files,history):
             
 
                 second_response = chain_response.invoke({
-                        "input": f"Aqui estão os dias marcados: {tool_result}.Se existirem datas, CRIA e envia um objeto com 'mensagem', e 'data' com as datas que existem, se for ausências adiciona o tipo de ausência associado a cada data, sem formatação.",
+                       "input": f"Aqui estão os dias marcados: {tool_result}.Se existirem datas, CRIA SEMPRE e envia um DICIONÁRIO com 'mensagem', e 'data' com as datas que existem. Cada entrada deve conter as chaves 'date', 'type', 'hora_inicio', 'hora_fim', e 'estado'.",
                         "filtered_absence_types": f"{filtered_absence_types}",
                         "date": f"{datetime.now().strftime('%Y-%m-%d')}, {datetime.now().strftime('%A')}",
                         "uploaded_files": f"{uploaded_files}",

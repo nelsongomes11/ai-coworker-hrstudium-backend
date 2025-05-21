@@ -85,7 +85,7 @@ def add_request(dates: list[dateClass], bearer_token: str, type_leave: str, id_t
 
        
         up_files = [
-            (None, (file.name, file.read(), file.type))
+            (None, (file.filename, file.file.read(), file.content_type))
             for file in files
         ]
 
