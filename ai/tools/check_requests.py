@@ -26,12 +26,15 @@ def check_requests(bearer_token: str, type_requests: str) -> str:
 
     """
 
+    print(1)
+
     requested_dates_vacations = []
     requested_dates_absences = []
     response = requests.get(
         "https://api-dev.hrstudium.pt/vacations",
         headers={"company": "dev", "Authorization": "Bearer " + bearer_token}
     )
+    print(2)
     if response.status_code == 200:
         vacation_data = response.json()
         for vac_request in vacation_data.get("pedidos_ferias", []):
@@ -81,6 +84,7 @@ def check_requests(bearer_token: str, type_requests: str) -> str:
     else:
         print("Failed to fetch vacations data:", response.status_code)
 
+    print(3)
     if type_requests == "ferias":
         return json.dumps(requested_dates_vacations)
     elif type_requests == "ausencias":

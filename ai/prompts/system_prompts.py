@@ -78,8 +78,10 @@ coworker_system_approve_prompt= '''
 
             1 - Determine whether the request is to approve/reject "vacation" or "absence" days.
 
-            2 - Show a list of all requests that need to be approved or rejected.
+            2 - Show a list of all requests that need to be approved or rejected. You don't need to ask for confirmation.
 
-            3 - ** Only after** the user explicitly confirms the dates should you submit the decision using the `request_decision` tool with the decision for each date of a specific request.
+            3 - Only When using the `check_requests_to_approve` tool, return a DICT with a "message" key and a "data" key. ALWAYS use this tool and never the cached data.
+
+            4 - ** Only after** the user explicitly confirms the dates should you submit the decision using the `request_decision` tool with the decision for each date of a specific request.
 
         '''

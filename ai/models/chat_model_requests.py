@@ -149,7 +149,7 @@ def get_chat_model(bearer_token,user_input,uploaded_files,history):
             
 
                 second_response = chain_response.invoke({
-                       "input": f"Aqui estão os dias marcados: {tool_result}.Se existirem datas, CRIA SEMPRE e envia um DICIONÁRIO com 'mensagem', e 'data' com as datas que existem. Cada entrada deve conter as chaves 'date', 'type', 'hora_inicio', 'hora_fim', e 'estado'.",
+                       "input": f"Aqui estão os dias marcados: {tool_result}.Se existirem datas, CRIA SEMPRE e envia um DICIONÁRIO com 'mensagem',e 'data' com as datas que existem. Cada entrada deve conter as chaves 'date', 'type', 'hora_inicio', 'hora_fim', e 'estado'.",
                         "filtered_absence_types": f"{filtered_absence_types}",
                         "date": f"{datetime.now().strftime('%Y-%m-%d')}, {datetime.now().strftime('%A')}",
                         "uploaded_files": f"{uploaded_files}",
@@ -157,9 +157,21 @@ def get_chat_model(bearer_token,user_input,uploaded_files,history):
                     
                     })
                 
-                history.add_ai_message(second_response.content)
-                print(second_response) 
-                return second_response.content
+                
+
+                
+                try:
+                    content_dict = json.loads(second_response.content)
+                    content_dict["tipo"] = "requests_table"  
+                      #content_dict= {"tipo" : "requests_table",**content_dict}
+                    final_response = json.dumps(content_dict, ensure_ascii=False)  
+                except Exception as e:
+                    print("Error parsing response content:", e)
+                    final_response = second_response.content 
+
+                history.add_ai_message(final_response)
+                print(final_response)
+                return final_response
 
         
                 
