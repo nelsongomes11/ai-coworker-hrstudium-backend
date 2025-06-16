@@ -43,12 +43,13 @@ def handle_chat_model_request(input:dict,bearer_token,uploaded_files):
 
         history = get_messages(db, session_id=session_id)
         
-        chat_model_response=get_chat_model(bearer_token,user_input,uploaded_files=uploaded_files,history=history)
+        chat_model_response,tool_name=get_chat_model(bearer_token,user_input,uploaded_files=uploaded_files,history=history)
 
         save_ai_response=save_message(db,user_id=user_id,content=chat_model_response,role="assistant",session_id=session_id)
 
         return {
-            "chat_ai_message": save_ai_response
+            "chat_ai_message": save_ai_response,
+            "tool_name": tool_name
         }
 
 

@@ -38,7 +38,7 @@ def get_chat_model(bearer_token,user_input,uploaded_files,history):
     absence_types=absence_types.json() 
 
     filtered_absence_types = [
-            {"id": item["id"], "description": item["description"], "active": item["active"],"documento_obrigatorio": item["documento_obrigatorio"]}
+            {"id": item["id"], "description": item["description"], "active": item["active"],"document_required": item["documento_obrigatorio"]}
             for item in absence_types if item.get("active") == 1
         ]
     
@@ -77,7 +77,8 @@ def get_chat_model(bearer_token,user_input,uploaded_files,history):
 
     if first_response.content:
         history.add_ai_message(first_response.content)
-        return first_response.content
+        print(first_response.content)
+        return first_response.content,None
     
    
 
@@ -86,92 +87,64 @@ def get_chat_model(bearer_token,user_input,uploaded_files,history):
         for tool_call in first_response.tool_calls:
 
             tool_name=tool_call["name"]
+            tool_args = tool_call["args"]
+            tool_args["bearer_token"] = bearer_token
+            tool_args["files"] = uploaded_files
 
 
             if tool_name=="verify_and_extract_dates":
                 
-                tool_args = tool_call["args"]
-                tool_args["bearer_token"] = bearer_token
-
                 tool_result = verify_and_extract_dates.invoke(tool_args)
-
                 print(f"Tool used : {tool_name}")
+                check_true = bool(tool_result.get("allowed_dates"))
+                
+                follow_up_input=f"The available days are: {tool_result}.NOW if the date is available ASK the user to confirm if he wishes to submit the request (add_request tool).!."
 
-            
-
-                second_response = chain_response.invoke({
-                        "input": f"Os dias disponíveis são: {tool_result}. Por favor confirme se deseja prosseguir com o agendamento.",
-                        "filtered_absence_types": f"{filtered_absence_types}",
-                        "date": f"{datetime.now().strftime('%Y-%m-%d')}, {datetime.now().strftime('%A')}",
-                        "uploaded_files": f"{uploaded_files}",
-                        "history": history.messages,
-                    
-                    })
-
-                history.add_ai_message(second_response.content)
-                print(second_response)
-                return second_response.content
-            
             elif tool_name=="add_request":
 
-                tool_args = tool_call["args"]
-                tool_args["bearer_token"] = bearer_token
-                tool_args["files"] = uploaded_files
-
                 tool_result = add_request.invoke(tool_args)
-
                 print(f"Tool used : {tool_name}")
-
-                second_response = chain_response.invoke({
-                        "input": f"A mensagem ao submeter pedido foi : {tool_result}.",
-                        "filtered_absence_types": f"{filtered_absence_types}",
-                        "date": f"{datetime.now().strftime('%Y-%m-%d')}, {datetime.now().strftime('%A')}",
-                        "uploaded_files": f"{uploaded_files}",
-                        "history": history.messages,
-                    
-                    })
-
-                history.add_ai_message(second_response.content)
-                print(second_response)
-                return second_response.content
+                follow_up_input= f"The message when submitting the request was : {tool_result}."
             
             elif tool_name=="check_requests":
 
-                tool_args = tool_call["args"]
-                
-                tool_args["bearer_token"] = bearer_token
-                tool_args["files"] = uploaded_files
-
                 tool_result = check_requests.invoke(tool_args)
-
                 print(f"Tool used : {tool_name}")
-                
-            
-
-                second_response = chain_response.invoke({
-                       "input": f"Aqui estão os dias marcados: {tool_result}.Se existirem datas, CRIA SEMPRE e envia um DICIONÁRIO com 'mensagem',e 'data' com as datas que existem. Cada entrada deve conter as chaves 'date', 'type', 'hora_inicio', 'hora_fim', e 'estado'.",
-                        "filtered_absence_types": f"{filtered_absence_types}",
-                        "date": f"{datetime.now().strftime('%Y-%m-%d')}, {datetime.now().strftime('%A')}",
-                        "uploaded_files": f"{uploaded_files}",
-                        "history": history.messages,
-                    
-                    })
-                
-                
+                follow_up_input= f"Here are the requests: {tool_result}.If there's any dates, ALWAYS CREATE AND SEND an JSON with the keys 'message', and 'dates' with the dates that exist. Each entry must contain the keys 'date', 'type', 'hora_inicio', 'hora_fim', e 'estado'."
 
                 
-                try:
+
+            second_response = chain_response.invoke({
+                            "input": follow_up_input,
+                            "filtered_absence_types": f"{filtered_absence_types}",
+                            "date": f"{datetime.now().strftime('%Y-%m-%d')}, {datetime.now().strftime('%A')}",
+                            "uploaded_files": f"{uploaded_files}",
+                            "history": history.messages,
+                        })  
+                
+            try:
                     content_dict = json.loads(second_response.content)
                     content_dict["tipo"] = "requests_table"  
                       #content_dict= {"tipo" : "requests_table",**content_dict}
                     final_response = json.dumps(content_dict, ensure_ascii=False)  
-                except Exception as e:
-                    print("Error parsing response content:", e)
+            except Exception as e:
+                    
                     final_response = second_response.content 
 
-                history.add_ai_message(final_response)
-                print(final_response)
-                return final_response
+            history.add_ai_message(final_response)
+            if (tool_name=="verify_and_extract_dates" and check_true) or (tool_name=="add_request") or (tool_name=="check_requests"):
+                print(final_response,tool_name)
+                return final_response,tool_name
+            else:
+                return final_response,None
+                 
+                
+            
+           
+        
+
+                
+               
 
         
                 

@@ -54,8 +54,8 @@ def check_requests(bearer_token: str, type_requests: str) -> str:
                 requested_dates_vacations.append({
                     "date": d["data"],
                     "type": "Férias",
-                    "hora_inicio": d["hora_inicio"],
-                    "hora_fim": d["hora_fim"],
+                    "hora_inicio": d["hora_inicio"] if d["hora_inicio"]!=None else "09:00:00",
+                    "hora_fim": d["hora_fim"] if d["hora_fim"]!=None else "18:00:00",
                     "estado": estado_str
                 })
 

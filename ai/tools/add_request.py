@@ -33,6 +33,35 @@ def add_request(dates: list[dateClass], bearer_token: str, type_leave: str, id_t
 
     """
     
+    absence_types=requests.get('https://api-dev.hrstudium.pt/vacations/absences/types',
+            headers={
+                "company":"dev",
+                "Authorization":"Bearer "+bearer_token
+
+        })
+
+    absence_types=absence_types.json() 
+
+    filtered_absence_types = [
+            {"id": item["id"], "description": item["description"], "active": item["active"],"document_required": item["documento_obrigatorio"]}
+            for item in absence_types if item.get("active") == 1
+        ]
+    
+
+    req_doc=False
+
+    if filtered_absence_types:
+        for absence_type in filtered_absence_types:
+            if absence_type["id"]==id_type_absence:
+                if absence_type["document_required"]==1:
+                    req_doc=True
+                else:
+                    req_doc=False
+                break
+
+    
+    if req_doc and not files:
+        return "You need to upload a document for this absence type. Please upload the required document."
 
     formatted_dates=[]
 
@@ -84,13 +113,14 @@ def add_request(dates: list[dateClass], bearer_token: str, type_leave: str, id_t
         print(files)
 
        
-        up_files = [
-            (None, (file.filename, file.file.read(), file.content_type))
-            for file in files
-        ]
+        if files:
+            up_files = [
+                (None, (file.filename, file.file.read(), file.content_type))
+                for file in files 
+            ]
 
-        if not up_files:
-              
+        else:
+              up_files = []
               up_files.append((None, (None, None, None)))
 
         print("Files to upload",files)

@@ -11,6 +11,7 @@ def verify_and_extract_dates(dates: list, bearer_token: str) -> dict:
     If the dictionary is empty, all requested dates are blocked.
     Only use this if the user is requesting vacation days or absence days.
     Only use this if the user mentions dates in the request.
+    
 
     Args:
         dates (list): List of date strings in YYYY-MM-DD format.
