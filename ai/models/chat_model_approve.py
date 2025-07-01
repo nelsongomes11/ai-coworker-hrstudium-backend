@@ -61,6 +61,7 @@ def get_chat_model_approve(bearer_token,user_input,history):
     
     if first_response.content:
         history.add_ai_message(first_response.content)
+        print(first_response.content)
         return first_response.content
 
     if first_response.tool_calls:
@@ -68,62 +69,55 @@ def get_chat_model_approve(bearer_token,user_input,history):
         for tool_call in first_response.tool_calls:
 
             tool_name=tool_call["name"]
+            tool_args = tool_call["args"]
+            tool_args["bearer_token"] = bearer_token
 
 
             if tool_name=="check_requests_to_approve":
                 
-                tool_args = tool_call["args"]
-                tool_args["bearer_token"] = bearer_token
+                
                 
                 tool_result = check_requests_to_approve.invoke(tool_args)
-
+                print(tool_result)
+                print(f"Tool used : {tool_name}")
+                follow_up_input= f"Here are the requests: {tool_result}. If there's any dates, ALWAYS CREATE AND SNED an JSON with the keys 'message', and 'dates' with the dates that exist. Each entry must contain the keys 'id','nome_completo', 'data', e 'tipo'."
                 
+
+
+            elif tool_name=="request_decision":
+                
+                
+                tool_result = request_decision.invoke(tool_args)
+                print(f"Tool used : {tool_name}")     
+                follow_up_input=f"The message submitting the request was : {tool_result}."      
+
 
                 
             
 
-                second_response = chain_response.invoke({
-                        "input": f"Os pedidos para aprovação são: {tool_result}. Se existirem datas, CRIA SEMPRE e envia APENAS um DICIONÁRIO com 'mensagem' e 'data' com as datas que existem. Cada entrada deve conter as chaves 'id','nome_completo', 'data', e 'tipo'.",
+            second_response = chain_response.invoke({
+                        "input": follow_up_input,
                         "history": history.messages,
                     
-                    })
+            })
                 
 
                 
-                try:
+            try:
                     content_dict = json.loads(second_response.content)
                     content_dict["tipo"] = "approve_table"  
                     final_response = json.dumps(content_dict, ensure_ascii=False)  
-                except Exception as e:
+            except Exception as e:
                     print("Error parsing response content:", e)
                     final_response = second_response.content 
 
-                history.add_ai_message(final_response)
-                print(final_response)
-                return final_response
+            history.add_ai_message(final_response)
+            print(final_response)
+            return final_response
             
-            elif tool_name=="request_decision":
-                
-                tool_args = tool_call["args"]
-                tool_args["bearer_token"] = bearer_token
-                
-                tool_result = request_decision.invoke(tool_args)
+          
 
-                print(f"Tool used : {tool_name}")
-
-                
-            
-
-                second_response = chain_response.invoke({
-                        "input": f"A mensagem ao submeter pedido foi : {tool_result}.",
-                        "history": history.messages,
-                    
-                    })
-
-                history.add_ai_message(second_response.content)
-                print(second_response)
-                return second_response.content
-            
+               
            
             
 

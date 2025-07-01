@@ -2,7 +2,7 @@ from fastapi import HTTPException
 import requests
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from db.models import User, Session as ChatSession, Message
+from db.models import User, Session as ChatSession, Message, ChatEmployeesMessages
 from langchain_core.messages import HumanMessage, AIMessage
 from datetime import datetime
 from typing import List, Optional
@@ -107,3 +107,64 @@ def get_messages(db: Session, session_id: int) -> List:
             history.add_ai_message(m.content)
 
     return history
+
+
+## CHAT EMPLOYEES 
+
+def save_chat_employee_message(
+    db:Session,
+    sender_id: int,
+    receiver_id: int,
+    message: str,
+    file_url: Optional[str] = None
+    
+):
+    chat_message= ChatEmployeesMessages(
+        sender_id=sender_id,
+        receiver_id=receiver_id,
+        message=message,
+        file_url=file_url,
+        timestamp=datetime.now()
+    )
+
+    db.add(chat_message)
+    db.commit()
+    db.refresh(chat_message)
+
+    return {
+        "id": chat_message.id,
+        "sender_id": chat_message.sender_id,
+        "receiver_id": chat_message.receiver_id,
+        "message": chat_message.message,
+        "file_url": chat_message.file_url,
+
+    }
+
+
+def get_chat_employee_messages(
+    db: Session,
+    sender_id: int,
+    receiver_id: int
+) -> List[ChatEmployeesMessages]:
+    
+    messages = db.query(ChatEmployeesMessages).filter(
+        (ChatEmployeesMessages.sender_id == sender_id) & 
+        (ChatEmployeesMessages.receiver_id == receiver_id)
+    ).order_by(ChatEmployeesMessages.timestamp.asc()).all()
+
+    messagesReceiver = db.query(ChatEmployeesMessages).filter(
+        (ChatEmployeesMessages.sender_id == receiver_id) &
+        (ChatEmployeesMessages.receiver_id == sender_id)
+    ).order_by(ChatEmployeesMessages.timestamp.asc()).all()
+
+    messages.extend(messagesReceiver)
+    messages.sort(key=lambda x: x.timestamp)
+
+    return [{
+        "id": m.id,
+        "sender_id": m.sender_id,
+        "receiver_id": m.receiver_id,
+        "message": m.message,
+        "file_url": m.file_url,
+        "timestamp": m.timestamp
+    } for m in messages]

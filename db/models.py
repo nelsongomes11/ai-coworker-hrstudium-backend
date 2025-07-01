@@ -27,3 +27,12 @@ class Message(Base):
     content=Column(String, index=True)
     created_at=Column(DateTime, default=datetime.now)
     session=relationship("Session", back_populates="messages")
+
+class ChatEmployeesMessages(Base):
+    __tablename__ = "chat_employees_messages"
+    id=Column(Integer,primary_key=True,index=True )
+    sender_id=Column(Integer, index=True)
+    receiver_id=Column(Integer, index=True)
+    message=Column(String, index=True)
+    file_url=Column(String, index=True)
+    timestamp=Column(DateTime, default=datetime.now)

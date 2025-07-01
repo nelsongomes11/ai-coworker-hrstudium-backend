@@ -43,3 +43,14 @@ class User(UserBase):
 
     class Config:
         orm_mode = True
+
+class ChatEmployeesMessageBase(BaseModel):
+    id: int
+    sender_id: int
+    receiver_id: int
+    message: str
+    file_url: Optional[str] = None
+    timestamp: datetime
+
+    class Config:
+        orm_mode = True

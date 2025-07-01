@@ -26,7 +26,11 @@ async def post_message(
         "input": input,
         "session_id": session_id
     }
+    if uploaded_files :
+        input_data["uploaded_files"] = [file.filename for file in uploaded_files]
+        print(f"Received Files: {[file.filename for file in uploaded_files]}")
 
+        
     return services.chat_model_request.handle_chat_model_request(
         input=input_data,
         bearer_token=bearer_token,

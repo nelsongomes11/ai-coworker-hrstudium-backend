@@ -20,6 +20,7 @@ from datetime import datetime
 from tools.extract_dates import verify_and_extract_dates
 from tools.add_request import add_request
 from tools.check_requests import check_requests
+from tools.check_user import check_user
 
 
 
@@ -46,7 +47,7 @@ def get_chat_model(bearer_token,user_input,uploaded_files,history):
 
     llm=ChatOpenAI(model="gpt-4.1-mini")
 
-    llm_with_tools=llm.bind_tools([verify_and_extract_dates,add_request,check_requests])
+    llm_with_tools=llm.bind_tools([verify_and_extract_dates,add_request,check_requests,check_user])
 
 
     history.add_user_message(user_input)
@@ -112,6 +113,10 @@ def get_chat_model(bearer_token,user_input,uploaded_files,history):
                 print(f"Tool used : {tool_name}")
                 follow_up_input= f"Here are the requests: {tool_result}.If there's any dates, ALWAYS CREATE AND SEND an JSON with the keys 'message', and 'dates' with the dates that exist. Each entry must contain the keys 'date', 'type', 'hora_inicio', 'hora_fim', e 'estado'."
 
+            elif tool_name=="check_user":
+                tool_result = check_user.invoke(tool_args)
+                print(f"Tool used : {tool_name}")
+                follow_up_input= f"Here is the user info: {tool_result}."
                 
 
             second_response = chain_response.invoke({

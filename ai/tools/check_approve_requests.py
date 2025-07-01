@@ -22,7 +22,7 @@ def check_requests_to_approve(bearer_token: str,type_requests: str) -> str:
 
     
     """
-
+    
     
 
     
@@ -34,7 +34,10 @@ def check_requests_to_approve(bearer_token: str,type_requests: str) -> str:
             headers={"company": "dev", "Authorization": "Bearer " + bearer_token}
         )
         if response.status_code == 200:
+            
+
             data= response.json()
+            print(data)
 
             filtered_requests=[
                 {
@@ -53,9 +56,10 @@ def check_requests_to_approve(bearer_token: str,type_requests: str) -> str:
                 }
                 for item in data
             ]
-
+            print(1)
             return "Vacations requests", json.dumps(filtered_requests)
         else:
+            print(2)
             print("Failed to fetch requests to approve:", response.status_code)
             return("No requests to approve")
     
@@ -87,9 +91,10 @@ def check_requests_to_approve(bearer_token: str,type_requests: str) -> str:
                 }
                 for item in data
             ]
-
+            print(1)
             return "Absences requests",json.dumps(filtered_requests)
         else:
+            print(2)
             print("Failed to fetch requests to approve:", response.status_code)
             return("No requests to approve")
 
