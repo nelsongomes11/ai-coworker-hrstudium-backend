@@ -32,7 +32,7 @@ class Session(SessionBase):
         orm_mode = True
 
 class UserBase(BaseModel):
-    nome_completo: str
+    full_name: str
 
 class UserCreate(UserBase):
     pass

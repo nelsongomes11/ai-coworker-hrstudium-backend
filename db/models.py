@@ -6,7 +6,7 @@ from db.database import Base
 class User(Base):
     __tablename__ = "users"
     id=Column(Integer, primary_key=True, index=True)
-    nome_completo=Column(String, index=True)
+    full_name=Column(String, index=True)
     sessions=relationship("Session", back_populates="user")
 
 class Session(Base):

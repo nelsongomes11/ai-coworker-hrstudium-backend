@@ -12,8 +12,8 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 def user_exists(db: Session, user_id: int) -> bool:
     return db.query(User).filter(User.id == user_id).first() is not None
 
-def create_user(db: Session, user_id: int, nome_completo: str) -> int:
-    new_user = User(id=user_id, nome_completo=nome_completo)
+def create_user(db: Session, user_id: int, full_name: str) -> int:
+    new_user = User(id=user_id, full_name=full_name)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -48,9 +48,9 @@ def save_message(
 
         if response.status_code == 200:
                 user_data = response.json()
-                nome_completo = user_data.get("nome_completo")
+                full_name = user_data.get("full_name")
 
-                user_id = create_user(db, user_id=user_id, nome_completo=nome_completo)
+                user_id = create_user(db, user_id=user_id, full_name=full_name)
 
         else:
                 raise HTTPException(status_code=401, detail="Invalid or missing authentication")

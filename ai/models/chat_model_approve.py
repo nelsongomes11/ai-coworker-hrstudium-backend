@@ -80,7 +80,7 @@ def get_chat_model_approve(bearer_token,user_input,history):
                 tool_result = check_requests_to_approve.invoke(tool_args)
                 print(tool_result)
                 print(f"Tool used : {tool_name}")
-                follow_up_input= f"Here are the requests: {tool_result}. If there's any dates, ALWAYS CREATE AND SNED an JSON with the keys 'message', and 'dates' with the dates that exist. Each entry must contain the keys 'id','nome_completo', 'data', e 'tipo'."
+                follow_up_input= f"Here are the requests: {tool_result}. If there's any dates, ALWAYS CREATE AND SNED an JSON with the keys 'message', and 'dates' with the dates that exist. Each entry must contain the keys 'id','full_name', 'data', e 'tipo'."
                 
 
 

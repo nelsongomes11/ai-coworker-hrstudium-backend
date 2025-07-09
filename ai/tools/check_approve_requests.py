@@ -42,7 +42,7 @@ def check_requests_to_approve(bearer_token: str,type_requests: str) -> str:
             filtered_requests=[
                 {
                     "id:": item["id"],
-                    "nome_completo":item["criador"]["nome_completo"],
+                    "full_name":item["criador"]["full_name"],
                     "datas": [
                             {
                                 "data": d["data"],
@@ -77,7 +77,7 @@ def check_requests_to_approve(bearer_token: str,type_requests: str) -> str:
             filtered_requests=[
                 {
                     "id:": item["id"],
-                    "nome_completo":item["criador"]["nome_completo"],
+                    "full_name":item["criador"]["full_name"],
                     "datas": [
                             {
                                 "data": d["data"],
